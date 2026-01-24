@@ -5,7 +5,9 @@ import {
   getJob,
   updateJob,
   deleteJob,
-} from "../controllers/jobController.js";
+  getJobStats,
+} from "../controllers/jobsController.js";
+
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -13,6 +15,8 @@ const router = express.Router();
 router.route("/")
   .post(protect, createJob)
   .get(protect, getAllJobs);
+
+router.get("/stats", protect, getJobStats);
 
 router.route("/:id")
   .get(protect, getJob)

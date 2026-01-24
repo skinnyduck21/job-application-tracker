@@ -5,11 +5,12 @@ import mongoose from "mongoose";
 export const createJob = async (req, res) => {
   const job = await Job.create({
     ...req.body,
-    createdBy: req.user.id,
+    createdBy: req.user.userId,
   });
 
   res.status(201).json(job);
 };
+
 // GET ALL JOBS (SEARCH + FILTER + SORT + PAGINATION)
 export const getAllJobs = async (req, res) => {
   const { search, status, jobType, sort, page, limit } = req.query;
@@ -123,4 +124,71 @@ export const deleteJob = async (req, res) => {
   }
 
   res.status(200).json({ message: "Job deleted successfully" });
+};
+
+
+// GET JOB STATS
+export const getJobStats = async (req, res) => {
+  const userId = req.user.id;
+
+  // 1. Status stats
+  const statusStats = await Job.aggregate([
+    { $match: { createdBy: new mongoose.Types.ObjectId(userId) } },
+    {
+      $group: {
+        _id: "$status",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // Convert to object: { pending: 2, interview: 1, declined: 3 }
+  const formattedStatusStats = statusStats.reduce((acc, curr) => {
+    acc[curr._id] = curr.count;
+    return acc;
+  }, {});
+
+  // 2. Job type stats
+  const jobTypeStats = await Job.aggregate([
+    { $match: { createdBy: new mongoose.Types.ObjectId(userId) } },
+    {
+      $group: {
+        _id: "$jobType",
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const formattedJobTypeStats = jobTypeStats.reduce((acc, curr) => {
+    acc[curr._id] = curr.count;
+    return acc;
+  }, {});
+
+  // 3. Monthly applications (last 6 months)
+  let monthlyApplications = await Job.aggregate([
+    { $match: { createdBy: new mongoose.Types.ObjectId(userId) } },
+    {
+      $group: {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" },
+        },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { "_id.year": -1, "_id.month": -1 } },
+    { $limit: 6 },
+  ]);
+
+  monthlyApplications = monthlyApplications.map((item) => {
+    const { year, month } = item._id;
+    const date = `${month}/${year}`;
+    return { date, count: item.count };
+  }).reverse();
+
+  res.status(200).json({
+    statusStats: formattedStatusStats,
+    jobTypeStats: formattedJobTypeStats,
+    monthlyApplications,
+  });
 };
