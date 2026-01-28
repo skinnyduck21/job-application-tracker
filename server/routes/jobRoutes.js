@@ -13,7 +13,7 @@ import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 router.route("/")
-  .post(protect, createJob)
+  .post(protect, createJob)   // 🔴 protect MUST be here
   .get(protect, getAllJobs);
 
 router.get("/stats", protect, getJobStats);

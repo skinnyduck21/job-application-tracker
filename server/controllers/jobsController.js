@@ -5,11 +5,12 @@ import mongoose from "mongoose";
 export const createJob = async (req, res) => {
   const job = await Job.create({
     ...req.body,
-    createdBy: req.user.userId,
+    createdBy: req.user.id, // ✅ FIX
   });
 
   res.status(201).json(job);
 };
+
 
 // GET ALL JOBS (SEARCH + FILTER + SORT + PAGINATION)
 export const getAllJobs = async (req, res) => {
