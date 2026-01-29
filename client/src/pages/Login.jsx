@@ -1,7 +1,7 @@
 import { useState } from "react";
 import api from "../api/axios";
 import { setToken } from "../utils/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // ✅ add Link
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -19,15 +19,32 @@ function Login() {
     }
   };
 
-
   return (
     <div className="container">
       <h2>Login</h2>
+
       <form onSubmit={handleSubmit}>
-        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <input
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
         <button type="submit">Login</button>
       </form>
+
+      {/* ✅ NEW: Register link */}
+      <p style={{ marginTop: "10px" }}>
+        Don’t have an account?{" "}
+        <Link to="/register">Register here</Link>
+      </p>
     </div>
   );
 }
